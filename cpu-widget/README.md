@@ -28,6 +28,8 @@ It is possible to customize widget by providing a table with all or some of the 
 | `step_width` | 2 | Width of the step |
 | `step_spacing` | 1 | Space size between steps |
 | `color` | `beautiful.fg_normal` | Color of the graph |
+| `background_color` | `#00000000` | Background color |
+| `static_color` | `false` | Prevents linear color transition |
 | `enable_kill_button` | `false` | Show button which kills the process |
 | `process_info_max_length` | `-1` | Truncate the process information. Some processes may have a very long list of parameters which won't fit in the screen, this options allows to truncate it to the given length. |
 | `timeout` | 1 | How often in seconds the widget refreshes |

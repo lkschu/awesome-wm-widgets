@@ -100,6 +100,7 @@ local function worker(user_args)
     local step_width = args.step_width or 2
     local step_spacing = args.step_spacing or 1
     local color = args.color or beautiful.fg_normal
+    local static_color = args.static_color or false
     local background_color = args.background_color or "#00000000"
     local enable_kill_button = args.enable_kill_button or false
     local process_info_max_length = args.process_info_max_length or -1
@@ -112,7 +113,7 @@ local function worker(user_args)
         step_width = step_width,
         step_spacing = step_spacing,
         widget = wibox.widget.graph,
-        color = "linear:0,0:0,20:0,#FF0000:0.3,#FFFF00:0.6," .. color
+        color = static_color and color or "linear:0,0:0,20:0.1,#FF0000:0.9,#FFFF00:0.9," .. color
     }
 
     -- This timer periodically executes the heavy command while the popup is open.
@@ -124,14 +125,15 @@ local function worker(user_args)
     }
 
     local popup = awful.popup{
+        hide_on_right_click = true,
         ontop = true,
         visible = false,
         shape = gears.shape.rounded_rect,
         border_width = 1,
         border_color = beautiful.bg_normal,
-        maximum_width = 300,
+        maximum_width = 400,
         offset = { y = 5 },
-        widget = {}
+        widget = {},
     }
 
     -- Do not update process rows when mouse cursor is over the widget
