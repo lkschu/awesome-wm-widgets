@@ -12,10 +12,11 @@ local awful = require("awful")
 local wibox = require("wibox")
 local watch = require("awful.widget.watch")
 local spawn = require("awful.spawn")
+local gfs = require("gears.filesystem")
 local naughty = require("naughty")
 local beautiful = require("beautiful")
 
-local ICON_DIR = os.getenv("HOME") .. '/.config/awesome/awesome-wm-widgets/brightness-widget/'
+local ICON_DIR = gfs.get_configuration_dir() .. "awesome-wm-widgets/brightness-widget/"
 local get_brightness_cmd
 local set_brightness_cmd
 local inc_brightness_cmd
@@ -24,20 +25,22 @@ local dec_brightness_cmd
 local brightness_widget = {}
 
 local function show_warning(message)
-    naughty.notify{
-        preset = naughty.config.presets.critical,
-        title = 'Brightness Widget',
-        text = message}
+	naughty.notify({
+		preset = naughty.config.presets.critical,
+		title = "Brightness Widget",
+		text = message,
+	})
 end
 
 local function worker(user_args)
-
-    local args = user_args or {}
+	  local args = user_args or {}
 
     local type = args.type or 'arc' -- arc or icon_and_text
     local path_to_icon = args.path_to_icon or ICON_DIR .. 'brightness.svg'
     local font = args.font or beautiful.font
     local timeout = args.timeout or 100
+	local size = args.size or 18
+	local arc_thickness = args.arc_thickness or 2
 
     local program = args.program or 'light'
     local step = args.step or 5
@@ -45,6 +48,7 @@ local function worker(user_args)
     local current_level = 0 -- current brightness value
     local tooltip = args.tooltip or false
     local percentage = args.percentage or false
+    local rmb_set_max = args.rmb_set_max or false
     if program == 'light' then
         get_brightness_cmd = 'light -G'
         set_brightness_cmd = 'light -S %d' -- <level>
@@ -56,10 +60,10 @@ local function worker(user_args)
         inc_brightness_cmd = 'xbacklight -inc ' .. step
         dec_brightness_cmd = 'xbacklight -dec ' .. step
     elseif program == 'brightnessctl' then
-        get_brightness_cmd = 'bash -c "brightnessctl -m | cut -d, -f4 | tr -d %"'
-        set_brightness_cmd = 'brightnessctl set %d%%' -- <level>
-        inc_brightness_cmd = 'brightnessctl set +' .. step .. '%'
-        dec_brightness_cmd = 'brightnessctl set ' .. step .. '-%'
+        get_brightness_cmd = "sh -c 'brightnessctl -m | cut -d, -f4 | tr -d %'"
+        set_brightness_cmd = "brightnessctl set %d%%" -- <level>
+        inc_brightness_cmd = "brightnessctl set +" .. step .. "%"
+        dec_brightness_cmd = "brightnessctl set " .. step .. "-%"
     else
         show_warning(program .. " command is not supported by the widget")
         return
@@ -103,10 +107,10 @@ local function worker(user_args)
                 layout = wibox.container.place
             },
             max_value = 100,
-            thickness = 2,
+            thickness = arc_thickness,
             start_angle = 4.71238898, -- 2pi*3/4
-            forced_height = 18,
-            forced_width = 18,
+            forced_height = size,
+            forced_width = size,
             paddings = 2,
             widget = wibox.container.arcchart,
             set_value = function(self, level)
@@ -128,37 +132,41 @@ local function worker(user_args)
     function brightness_widget:set(value)
         current_level = value
         spawn.easy_async(string.format(set_brightness_cmd, value), function()
-            spawn.easy_async(get_brightness_cmd, function(out)
+            spawn.easy_async_with_shell(get_brightness_cmd, function(out)
                 update_widget(brightness_widget.widget, out)
             end)
         end)
     end
     local old_level = 0
     function brightness_widget:toggle()
-        if old_level < 0.1 then
-            -- avoid toggling between '0' and 'almost 0'
-            old_level = 1
-        end
-        if current_level < 0.1 then
-            -- restore previous level
-            current_level = old_level
+        if rmb_set_max then
+            brightness_widget:set(100)
         else
-            -- save current brightness for later
-            old_level = current_level
-            current_level = 0
+            if old_level < 0.1 then
+                -- avoid toggling between '0' and 'almost 0'
+                old_level = 1
+            end
+            if current_level < 0.1 then
+                -- restore previous level
+                current_level = old_level
+            else
+                -- save current brightness for later
+                old_level = current_level
+                current_level = 0
+            end
+            brightness_widget:set(current_level)
         end
-        brightness_widget:set(current_level)
     end
     function brightness_widget:inc()
         spawn.easy_async(inc_brightness_cmd, function()
-            spawn.easy_async(get_brightness_cmd, function(out)
+            spawn.easy_async_with_shell(get_brightness_cmd, function(out)
                 update_widget(brightness_widget.widget, out)
             end)
         end)
     end
     function brightness_widget:dec()
         spawn.easy_async(dec_brightness_cmd, function()
-            spawn.easy_async(get_brightness_cmd, function(out)
+            spawn.easy_async_with_shell(get_brightness_cmd, function(out)
                 update_widget(brightness_widget.widget, out)
             end)
         end)
@@ -187,6 +195,8 @@ local function worker(user_args)
     return brightness_widget.widget
 end
 
-return setmetatable(brightness_widget, { __call = function(_, ...)
-    return worker(...)
-end })
+return setmetatable(brightness_widget, {
+	__call = function(_, ...)
+		return worker(...)
+	end,
+})
