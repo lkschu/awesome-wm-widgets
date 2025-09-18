@@ -14,14 +14,14 @@ local gears = require("gears")
 local beautiful = require("beautiful")
 
 local HOME_DIR = os.getenv("HOME")
-local WIDGET_DIR = HOME_DIR .. '/.config/awesome/awesome-wm-widgets/weather-widget'
+local WIDGET_DIR = HOME_DIR .. '/.config/awesome/widgets/awesome-wm-widgets/weather-widget'
 local GET_FORECAST_CMD = [[bash -c "curl -s --show-error -X GET '%s'"]]
 
 local SYS_LANG = os.getenv("LANG"):sub(1, 2)
 -- default language is ENglish
 local LANG = gears.filesystem.file_readable(WIDGET_DIR .. "/" .. "locale/" ..
                                       SYS_LANG .. ".lua") and SYS_LANG or "en"
-local LCLE = require("awesome-wm-widgets.weather-widget.locale." .. LANG)
+local LCLE = require("widgets.awesome-wm-widgets.weather-widget.locale." .. LANG)
 
 
 local function show_warning(message)
@@ -148,6 +148,7 @@ local function worker(user_args)
     local timeout = args.timeout or 120
 
     local ICONS_DIR = WIDGET_DIR .. '/icons/' .. icon_pack_name .. '/'
+    print(ICONS_DIR)
     local owm_one_cal_api =
         ('https://api.openweathermap.org/data/2.5/onecall' ..
             '?lat=' .. coordinates[1] .. '&lon=' .. coordinates[2] .. '&appid=' .. api_key ..
@@ -515,6 +516,7 @@ local function worker(user_args)
         tooltip:remove_from_object(widget)
         widget:is_ok(true)
 
+        print(stdout)
         local result = json.decode(stdout)
 
         widget:set_image(ICONS_DIR .. icon_map[result.current.weather[1].icon] .. icons_extension)

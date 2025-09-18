@@ -143,17 +143,19 @@ local function worker(user_args)
     cpugraph_widget:buttons(
             awful.util.table.join(
                     awful.button({}, 1, function()
-                        if popup.visible then
-                            popup.visible = not popup.visible
-                            -- When the popup is not visible, stop the timer
-                            popup_timer:stop()
-                        else
-                            popup:move_next_to(mouse.current_widget_geometry)
-                            -- Restart the timer, when the popup becomes visible
-                            -- Emit the signal to start the timer directly and not wait the timeout first
-                            popup_timer:start()
-                            popup_timer:emit_signal("timeout")
-                        end
+                        awful.spawn.with_shell("xterm -e gotop -l minimal")
+                        -- -- This starts the popup window, but just start gotop for now
+                        -- if popup.visible then
+                        --     popup.visible = not popup.visible
+                        --     -- When the popup is not visible, stop the timer
+                        --     popup_timer:stop()
+                        -- else
+                        --     popup:move_next_to(mouse.current_widget_geometry)
+                        --     -- Restart the timer, when the popup becomes visible
+                        --     -- Emit the signal to start the timer directly and not wait the timeout first
+                        --     popup_timer:start()
+                        --     popup_timer:emit_signal("timeout")
+                        -- end
                     end)
             )
     )

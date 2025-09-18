@@ -218,6 +218,13 @@ local function worker(user_args)
             )
     )
 
+   function calendar_widget.update()
+      cal:set_date(nil) -- the new date is not set without removing the old one
+      cal:set_date(os.date('*t'))
+      popup:set_widget(nil) -- just in case
+      popup:set_widget(cal)
+   end
+
     function calendar_widget.toggle()
 
         if popup.visible then
@@ -229,14 +236,14 @@ local function worker(user_args)
             popup.visible = not popup.visible
         else
             if placement == 'top' then
-                awful.placement.top(popup, { margins = { top = 30 }, parent = awful.screen.focused() })
+                awful.placement.top(popup, { margins = { top = 32 }, parent = awful.screen.focused() })
             elseif placement == 'top_right' then
-                awful.placement.top_right(popup, { margins = { top = 30, right = 10}, parent = awful.screen.focused() })
+                awful.placement.top_right(popup, { margins = { top = 32, right = 10}, parent = awful.screen.focused() })
             elseif placement == 'bottom_right' then
-                awful.placement.bottom_right(popup, { margins = { bottom = 30, right = 10},
+                awful.placement.bottom_right(popup, { margins = { bottom = 32, right = 10},
                     parent = awful.screen.focused() })
             else
-                awful.placement.top(popup, { margins = { top = 30 }, parent = awful.screen.focused() })
+                awful.placement.top(popup, { margins = { top = 32 }, parent = awful.screen.focused() })
             end
 
             popup.visible = true
